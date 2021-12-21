@@ -1,0 +1,219 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+#include "ar9344.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "Netgear WN370";
+	compatible = "netgear,wn370", "qca,ar9344";
+
+	aliases {
+		led-boot = &led_power_orange;
+		led-failsafe = &led_power_orange;
+		led-running = &led_power_green;
+		led-upgrade = &led_power_orange;
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		reset {
+			label = "reset";
+			linux,code = <KEY_RESTART>;
+			gpios = <&gpio 21 GPIO_ACTIVE_LOW>;
+			debounce-interval = <60>;
+		};
+
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		wan {
+			label = "green:wan";
+			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_power_orange: power_orange {
+			label = "orange:power";
+			gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
+			panic-indicator;
+		};
+
+		led_power_green: power_green {
+			label = "green:power";
+			gpios = <&gpio 12 GPIO_ACTIVE_HIGH>;
+		};		
+
+		wlan {
+			label = "green:wlan";
+			gpios = <&gpio 20 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "phy0tpt";
+		};
+
+		lan1 {
+			label = "green:lan1";
+			gpios = <&gpio 13 GPIO_ACTIVE_HIGH>;
+		};
+
+		lan2 {
+			label = "green:lan2";
+			gpios = <&gpio 4 GPIO_ACTIVE_HIGH>;
+		};
+
+		lan3 {
+			label = "green:lan3";
+			gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
+		};
+
+		lan4 {
+			label = "green:lan4";
+			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
+		};		
+
+	};
+};
+
+&gpio {
+	status = "okay";
+};
+
+&ref {
+	clock-frequency = <40000000>;
+};
+
+&spi {
+	status = "okay";
+	num-cs = <1>;
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <25000000>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x000000 0x040000>;
+				read-only;
+			};
+
+			partition@40000 {
+				label = "u-boot-env";
+				reg = <0x040000 0x010000>;
+				read-only;
+			};
+
+			partition@50000 {
+				label = "rootfs";
+				reg = <0x050000 0x800000>;
+			};
+
+			partition@850000 {
+				label = "vmlinux.lzma.uImage";
+				reg = <0x850000 0x290000>;
+				read-only;
+			};
+
+			partition@ae0000 {
+				label = "FT_CONF";
+				reg = <0xae0000 0x400000>;
+				read-only;
+			};
+
+			partition@ee0000 {
+				label = "manuf";
+				reg = <0xee0000 0x010000>;
+				read-only;
+			};
+
+			partition@ef0000 {
+				label = "NG_OOPS";
+				reg = <0xef0000 0x100000>;
+				read-only;
+			};
+
+			art: partition@ff0000 {
+				label = "ART";
+				reg = <0xff0000 0x010000>;
+				read-only;
+			};
+		};
+	};
+};
+
+
+&mdio0 {
+	status = "okay";
+	phy-mode = "rgmii";
+	phy2: ethernet-phy@2 {
+		reg = <2>;
+		eee-broken-100tx;
+		eee-broken-1000t;
+	};
+};
+
+&eth0 {
+	status = "okay";
+
+	phy-handle = <&phy2>;
+	phy-mode = "rgmii";
+
+	nvmem-cells = <&macaddr_art_0>;
+	nvmem-cell-names = "mac-address";
+ 
+	pll-data = <0x0e000000 0x00000101 0x00001313>;
+
+	gmac-config {
+		device = <&gmac>;
+		rgmii-gmac0 = <1>;
+		rxdv-delay = <3>;
+		rxd-delay = <3>;
+	};
+};
+
+&eth1 {
+	status = "okay";
+ 
+	nvmem-cells = <&macaddr_art_6>;
+	nvmem-cell-names = "mac-address";
+
+	phy-handle = <&swphy0>;
+};
+
+&pcie {
+	status = "okay";
+
+	wifi@0,0 {
+		compatible = "pci168c,0030";
+		reg = <0x0000 0 0 0 0>;
+		qca,no-eeprom;
+	};
+};
+
+
+&wmac {
+	status = "okay";
+
+	mtd-cal-data = <&art 0x1000>;
+};
+
+&art {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_art_0: macaddr@0 {
+		reg = <0x0 0x6>;
+	};
+
+	macaddr_art_6: macaddr@6 {
+		reg = <0x6 0x6>;
+	};
+};

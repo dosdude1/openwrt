@@ -365,6 +365,10 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth0" "2:lan" "3:lan" "4:lan" "1:wan"
 		;;
+	netgear,wn370)
+		ucidef_add_switch "switch0" \
+			"0:lan" "1:lan" "2:lan" "3:lan" "4:lan"
+		;;
 	netgear,wndr3700|\
 	netgear,wndr3700-v2|\
 	netgear,wndr3800|\

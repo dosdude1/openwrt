@@ -1567,6 +1567,18 @@ define Device/netgear_ex7300
 endef
 TARGET_DEVICES += netgear_ex7300
 
+define Device/netgear_wn370
+  SOC := ar9344
+  DEVICE_VENDOR := NETGEAR
+  DEVICE_MODEL := WN370
+  IMAGE_SIZE := 15872k
+  IMAGE/kernel-uImage.bin := append-kernel
+  IMAGE/rootfs.bin := append-rootfs | pad-rootfs
+  IMAGES += kernel-uImage.bin rootfs.bin
+  SUPPORTED_DEVICES += wn370
+endef
+TARGET_DEVICES += netgear_wn370
+
 define Device/netgear_wndr3x00
   $(Device/netgear_generic)
   SOC := ar7161
